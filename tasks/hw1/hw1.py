@@ -169,8 +169,12 @@ def evenBinom(n, p):
     Returns:
     - prob: The output probability.
     """
+        prob_even = 0
 
-    return prob
+    for k in range(0, n + 1, 2):  # Only even k values
+        prob_even += binom.pmf(k, n, p)  # P(X = k)
+    
+    return prob_even
 
 
 def evenBinomFormula(n, p):
@@ -184,27 +188,74 @@ def evenBinomFormula(n, p):
     Returns:
     - prob: The output probability.
     """
+    # Use the direct formula for the probability that X is even
+    print("P(X is even) can be expressed in terms of n and p, givem by the binomial law: Binom(n,p)\n")
+    # not finished
+    return (1 + (1 - 2 * p) ** n) / 2
 
-    return prob
 
 
 ### Question 5 ###
 
 def three_RV(X, Y, Z, joint_probs):
     """
-
     Input:
     - X: 2d numpy array: [[values], [probabilities]].
     - Y: 2d numpy array: [[values], [probabilities]].
     - Z: 2d numpy array: [[values], [probabilities]].
-    - joint_probs: 3d numpy array: joint probability of X, Y and Z
+    - joint_probs: 3d numpy array: joint probability of X, Y and Z.
 
     Returns:
     - v: The variance of X + Y + Z.
     """
 
-    return v
+    # Compute the expected values of X, Y, and Z with the classic definition: E[X] = ∑ xi * P(X=xi) = ∑ [value i] * [proba i]
+    EX = np.sum(X[0] * X[1])
+    EY = np.sum(Y[0] * Y[1])
+    EZ = np.sum(Z[0] * Z[1])
 
+    
+    # Compute E[X**2]= ∑ xi**2 * P(X=xi)
+    EX2 = np.sum((X[0] ** 2) * X[1])
+    EY2 = np.sum((Y[0] ** 2) * Y[1])
+    EZ2 = np.sum((Z[0] ** 2) * Z[1])
+    
+    # Compute the variances of X, Y, and Z: Var[X] = E[X**2] - E[X]**2
+    VarX = EX2 - EX**2
+    VarY = EY2 - EY**2
+    VarZ = EZ2 - EZ**2
+
+
+    # Compute the covariances between pairs (X, Y), (X, Z), (Y, Z)
+    # By def, COV[X,Y] = E[X*Y] − E[X]*E[Y]
+
+    # Compute E[X*Y] = ∑ xi * yi * P(X=xi, Y=yi)
+
+    # P(X=xi, Y=yi)
+    # join_probs: P(X=xi, Y=yi, Z=zi)
+    # we want P(X=xi, Y=yi), that can be write with the join_probs: P(X=xi, Y=yi) = ∑ P(X=xi, Y=yi, Z=zi), ∑ on all the zi
+    P_XY = np.sum(joint_probs, axis=2) # axis = 2 , collapse Z (3rd elem of the join proba)
+
+    # xi * yi
+    # np.outer(X[0], Y[0]) produces a the matrix where each element is (xi * yi)  (2d)
+    EXY = np.sum(P_XY * np.outer(X[0], Y[0]))
+    
+    #We now do the same for (X,Z) and (Y,Z):
+    P_XZ = np.sum(joint_probs, axis=1)  # axis = 1 , collapse Y (2nd elem)
+    EXZ = np.sum(P_XZ * np.outer(X[0], Z[0]))
+
+    P_YZ = np.sum(joint_probs, axis=0)  # collapse X (first elem)
+    EYZ = np.sum(P_YZ * np.outer(Y[0], Z[0]))
+
+
+    # Covariance 
+    CovXY = EXY - EX * EY
+    CovXZ = EXZ - EX * EZ
+    CovYZ = EYZ - EY * EZ
+
+
+    # VAR(X+Y+Z) = Var(X) + Var(Y) + Var (Z) + 2*Cov(X,Y) + 2*Cov(XZ) + 2*Cov(YZ)
+    return VarX + VarY + VarZ + 2 * CovXY + 2 * CovXZ + 2 * CovYZ
 
 def three_RV_pairwise_independent(X, Y, Z, joint_probs):
     """
@@ -219,8 +270,30 @@ def three_RV_pairwise_independent(X, Y, Z, joint_probs):
     - v: The variance of X + Y + Z.
     """
 
-    return v
+    # Calculate the variance of the sum X + Y + Z
+    # Pairwise independent means that the covariance between any two of them is zero
+    
+    # Then VAR(X+Y+Z) = Var(X) + Var(Y) + Var (Z) + 2*Cov(X,Y) + 2*Cov(XZ) + 2*Cov(YZ) become VAR(X+Y+Z) = Var(X) + Var(Y) + Var (Z)
+    
+    # By the same idea of the last function, we need to:
 
+    # Compute the expected values of X, Y, and Z with the classic definition: E[X] = ∑ xi * P(X=xi) = ∑ [value i] * [proba i]
+    EX = np.sum(X[0] * X[1])
+    EY = np.sum(Y[0] * Y[1])
+    EZ = np.sum(Z[0] * Z[1])
+
+    
+    # Compute E[X**2]= ∑ xi**2 * P(X=xi)
+    EX2 = np.sum((X[0] ** 2) * X[1])
+    EY2 = np.sum((Y[0] ** 2) * Y[1])
+    EZ2 = np.sum((Z[0] ** 2) * Z[1])
+    
+    # Compute the variances of X, Y, and Z: Var[X] = E[X**2] - E[X]**2
+    VarX = EX2 - EX**2
+    VarY = EY2 - EY**2
+    VarZ = EZ2 - EZ**2
+
+    return VarX + VarY + VarZ
 
 def is_pairwise_collectively(X, Y, Z, joint_probs):
     """
@@ -234,8 +307,30 @@ def is_pairwise_collectively(X, Y, Z, joint_probs):
     Returns:
     TRUE or FALSE
     """
+    # pairwise: P(X=x,Y=y)=P(X=x)⋅P(Y=y)  /  P(Z=z,Y=y)=P(Z=z)⋅P(Y=y)  /   P(X=x,Z=z)=P(X=x)⋅P(Z=z)
 
-    pass
+    # collectivity: P(X=x,Y=y,Z=z)=P(X=x)⋅P(Y=y)⋅P(Z=z)
+    
+    # extract marginal probabilities of X, Y and Z from the join_proba
+    P_X = np.sum(joint_probs, axis=(1, 2))  # axis=(1,2), bc we sum over Y and Z
+    P_Y = np.sum(joint_probs, axis=(0, 2))  
+    P_Z = np.sum(joint_probs, axis=(0, 1)) 
+
+    for i, xi in enumerate(X[0]):  # enumerate give position, value  ->  use i to access to corresponding elements in other arrays like P_X[i] = P(X = xi) for that i
+        for j, yj in enumerate(Y[0]):
+            for k, zk in enumerate(Z[0]):
+                # P(X = xi, Y = yj, Z = zk)
+                P_join = joint_probs[i, j, k]
+
+                # P(X = xi)*P(Y = yj)*P(Z = zk)
+                P_sep = P_X[i] * P_Y[j] * P_Z[k]
+
+                # P(X = xi, Y = yj, Z = zk) =? P(X = xi)*P(Y = yj)*P(Z = zk)
+                if not np.isclose(P_join, P_sep):
+                    return False  # we dont have the collectively independent
+
+    # P(X = xi, Y = yj, Z = zk) = P(X = xi)*P(Y = yj)*P(Z = zk)  for every i, then pairwise => collectivity
+    return True
 
 
 ### Question 6 ###
@@ -244,5 +339,16 @@ def expectedC(n, p):
     """
     The program outputs the expected value of the RV C as defined in the notebook.
     """
+    def factorial(n):
+    fact = 1
+    for i in range(1, n + 1):
+        fact *= i
+    return fact
 
-    pass
+    exp = 0
+    for k in range(n+1):
+        c = ( factorial(n) ) / ( (factorial(n-k) * factorial(k) ) )
+        proba = c * (p**k) * ((1-p)**(n-k))
+        exp += (c * proba)
+
+    return exp 
