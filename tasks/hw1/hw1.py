@@ -189,8 +189,21 @@ def evenBinomFormula(n, p):
     - prob: The output probability.
     """
     # Use the direct formula for the probability that X is even
+
+    #PROOF
     print("P(X is even) can be expressed in terms of n and p, givem by the binomial law: Binom(n,p)\n")
-    # not finished
+    print("If n is even: P(X is even) = P(X=0) + P(X=2) + ... + P(X=n)\n")
+    print("P(X is even) = (1-p)**n + (2 on n)*(p**2)*((1-p)**(n-2)) + ... + p**n \n")
+    print("If n is odd: P(X is even) = P(X=0) + P(X=2) + ...+ P(X=n-1)\n")
+    print("P(X is even) = (1-p)**n + (2 on n)*(p**2)*((1-p)**(n-2)) + ... + (n-1 on n)*(p**(n-1))*(1-p) \n")
+    print("Using the generative function for the binomiale distribution, we know how to express ((1-p)+p)**n \n")
+    print("((1-p)+p)**n = 1 = ∑(k=0 to n) (k on n)*(p**k)*((1-p)**(n-k)) = P(X=1)+...+P(X=n) for every n   \n")
+    print("Then ((1-p)+p)**n = P(X) = P(X is odd) + P(X is even) \n")
+    print("In the same idea we express ((1-p)-p)**n = ∑(k=0 to n) (k on n)*((-p)**k)*((1-p)**(n-k)) \n")
+    print("That is equal to P(X=0) - P(X=1) + P(X=2) - ... that means P(X is even) - P(X is odd) \n")
+    print("Then we have that the sum of the two expression gives us 2*P(X is even) = ((1-p)-p)**n + ((1-p)+p)**n = 1 + (1-2*p)**n \n")
+    print("and finally : P(X is even) = (1/2) + (1/2)*((1- 2p)**n)\n")
+    
     return (1 + (1 - 2 * p) ** n) / 2
 
 
