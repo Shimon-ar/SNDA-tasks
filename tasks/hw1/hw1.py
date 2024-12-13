@@ -9,15 +9,38 @@ from scipy import stats, special
 import matplotlib.pyplot as plt
 
 
+def print_in_plot(steps):
+    fig, ax = plt.subplots(figsize=(10, 8))
+    for text, ypos, fontsize in steps:
+        ax.text(0.5, ypos, text, fontsize=fontsize, ha='center', va='center', fontweight='normal')
+    ax.axis('off')
+    plt.tight_layout()
+    plt.show()
+
+
 ### Question 1 ###
 
-def find_sample_size_binom(min_defective=1, defective_rate=0.05, p_n_defective_ts=0.85):
+def find_sample_size_binom(min_defective=1, defective_rate=0.05, p_n_defective_ts=0.85, print_answer=True):
     """
     Using Binom to returns the minimal number of samples required to have requested probability of receiving
     at least x defective products from a production line with a defective rate.
     """
-    print("Explanation: here")
-    n = 1
+
+    steps = [
+        (r"QUESTION 1.A:", 0.9, 18),
+        (r"Using the binomial distribution: X ~ Binom(n, 0.03)", 0.8, 15),
+        (r"Where X is the number of defective products in n independent samples", 0.75, 15),
+        (r"With defective probability of 3%", 0.71, 15),
+        (r"We want to find n which $P(X \geq 1) = 0.85$", 0.65, 15),
+        (r"$P(X \geq 1) = 1 - P(X = 0) = 1 - 0.97^n$", 0.58, 14),
+        (r"Then $0.85 = 1 - 0.97^n$ so $n = 62.2$", 0.53, 14),
+        (r"Hence we will need 63 samples to have probability of 85%", 0.45, 16),
+        (r"of at least 1 defective product", 0.42, 16)
+    ]
+    if print_answer:
+        print_in_plot(steps)
+
+    n = max(min_defective - 1, 1)
     while True:
         p_at_most_x_defective = stats.binom.cdf(min_defective - 1, n, defective_rate)
         p_at_least_x_defective = 1 - p_at_most_x_defective
@@ -31,7 +54,6 @@ def find_sample_size_nbinom(min_defective=1, defective_rate=0.05, p_n_defective_
     Using NBinom to returns the minimal number of samples required to have requested probability of receiving
     at least x defective products from a production line with a defective rate.
     """
-    print("Explanation: here")
     n = min_defective
     while True:
         p_n_trials = stats.nbinom.cdf(n - min_defective, min_defective, defective_rate)
@@ -41,9 +63,10 @@ def find_sample_size_nbinom(min_defective=1, defective_rate=0.05, p_n_defective_
 
 
 def compare_q1():
-    n_independent_samples_first_part = find_sample_size_binom(min_defective=5, defective_rate=0.1, p_n_defective_ts=0.9)
+    n_independent_samples_first_part = find_sample_size_binom(min_defective=5, defective_rate=0.1, p_n_defective_ts=0.9,
+                                                              print_answer=False)
     n_independent_samples_second_part = find_sample_size_binom(min_defective=15, defective_rate=0.3,
-                                                               p_n_defective_ts=0.9)
+                                                               p_n_defective_ts=0.9, print_answer=False)
     return n_independent_samples_first_part, n_independent_samples_second_part
 
 
@@ -64,7 +87,6 @@ def empirical_centralized_third_moment(n=20, p=[0.2, 0.1, 0.1, 0.1, 0.2, 0.3], k
     Create k experiments where X is sampled. Calculate the empirical centralized third moment of Y based
     on your k experiments.
     """
-    print("Explanation: here")
     if seed:
         np.random.seed(seed)
     X = np.random.multinomial(n, p, size=k)
@@ -73,21 +95,18 @@ def empirical_centralized_third_moment(n=20, p=[0.2, 0.1, 0.1, 0.1, 0.2, 0.3], k
     empirical_moment = np.mean((Y - E_Y) ** 3)
     return empirical_moment
 
-# print(empirical_centralized_third_moment(n=20, p=[0.2, 0.1, 0.1, 0.1, 0.2, 0.3], k=1000, seed=None))
 
 def class_moment(n=20, p=0.3):
     moment = n * p * (1 - p) * (1 - 2 * p)
     return moment
 
-# print(class_moment(n=20, p=0.3))
 
+def plot_moments(n=20, k=1000):
+    data = [empirical_centralized_third_moment(n) for _ in range(k)]
 
-def plot_moments(n=20):
-    data = [empirical_centralized_third_moment(n) for _ in range(1000)]
-
+    plt.title('Empirical Centralized Third Moment')
     plt.hist(data, bins=20)
     plt.axvline(class_moment(n), color='red')
-
     plt.xlabel('Moments')
     plt.ylabel('Experiment')
     plt.show()
@@ -97,7 +116,13 @@ def plot_moments(n=20):
 
 
 def plot_moments_smaller_variance():
-    print("Explanation: here what need to be reduced")
+    steps = [
+        (r"Question 2 Smaller variance:", 0.9, 18),
+        (r"As $n$ gets bigger, the count for each $X_i$ will increase", 0.85, 15),
+        (r"thus the distance from the expected value will also increase", 0.8, 15),
+        (r"which will affect the variance to be bigger.", 0.75, 15),
+    ]
+    print_in_plot(steps)
     dist_var = plot_moments(5)
     return dist_var
 
@@ -116,7 +141,16 @@ def NFoldConv(P, n):
     Returns:
     - Q: 2d numpy array: [[values], [probabilities]].
     """
-    print("Explanation: here")
+
+    """
+    Each iteration we calculate the convolution of the current distribution with P.
+    This true because we have n independent repeats of random variables, each of which has the distribution P.
+    in each iteration the following steps are occurred:
+    sum_dist is a 2d array which each row holds the sum and the distribution for it
+    Next we transform the sum_dist so the first row will hold the unique sums and the second row will hold the probabilities for each sum
+    then we get the unique elements and the inverse indices to know the position of each element in the unique elements array
+    then we calculate the new distribution for the sum of the two distributions
+    """
 
     Q = P
     for _ in range(n - 1):
@@ -142,6 +176,7 @@ def plot_dist(P):
     Input:
     - P: 2d numpy array: [[values], [probabilities]].
     """
+    plt.title('Q3 Distribution of P')
     plt.bar(P[0], P[1])
     plt.xlabel('Distribution')
     plt.ylabel('Probability')
@@ -179,25 +214,26 @@ def evenBinomFormula(n, p):
     Returns:
     - prob: The output probability.
     """
-    # Use the direct formula for the probability that X is even
-
-    #PROOF
-    print("P(X is even) can be expressed in terms of n and p, givem by the binomial law: Binom(n,p)\n")
-    print("If n is even: P(X is even) = P(X=0) + P(X=2) + ... + P(X=n)\n")
-    print("P(X is even) = (1-p)**n + (2 on n)*(p**2)*((1-p)**(n-2)) + ... + p**n \n")
-    print("If n is odd: P(X is even) = P(X=0) + P(X=2) + ...+ P(X=n-1)\n")
-    print("P(X is even) = (1-p)**n + (2 on n)*(p**2)*((1-p)**(n-2)) + ... + (n-1 on n)*(p**(n-1))*(1-p) \n")
-    print("Using the generative function for the binomiale distribution, we know how to express ((1-p)+p)**n \n")
-    print("((1-p)+p)**n = 1 = ∑(k=0 to n) (k on n)*(p**k)*((1-p)**(n-k)) = P(X=1)+...+P(X=n) for every n   \n")
-    print("Then ((1-p)+p)**n = P(X) = P(X is odd) + P(X is even) \n")
-    print("In the same idea we express ((1-p)-p)**n = ∑(k=0 to n) (k on n)*((-p)**k)*((1-p)**(n-k)) \n")
-    print("That is equal to P(X=0) - P(X=1) + P(X=2) - ... that means P(X is even) - P(X is odd) \n")
-    print("Then we have that the sum of the two expression gives us 2*P(X is even) = ((1-p)-p)**n + ((1-p)+p)**n = 1 + (1-2*p)**n \n")
-    print("and finally : P(X is even) = (1/2) + (1/2)*((1- 2p)**n)\n")
+    prove = [
+        (r"QUESTION 4 - Prove:", 0.9, 18),
+        (r"P(X is even) can be expressed in terms of n and p, given by the binomial law: X ~ Binom(n,p)", 0.8, 15),
+        (r"Using the generative function for the Binomiale distribution, we get the following:", 0.7, 15),
+        (
+            r"$\left((1-p) + p\right)^n = 1 = \sum_{k=0}^{n} \binom{n}{k} p^k (1-p)^{n-k} = P(X=0) + P(X=1) + \ldots + P(X=n) = $ P(X is Even) + P(X is Odd)",
+            0.6, 14),
+        (
+            r"$\left((1-p) - p\right)^n = 1 = \sum_{k=0}^{n} \binom{n}{k} (-p)^k (1-p)^{n-k} = P(X=0) - P(X=1) + P(X=2) \ldots = $ P(X is Even) - P(X is Odd)",
+            0.5, 14),
+        (r"Then the sum of this two expression gives us:", 0.4, 15),
+        (r"2*P(X is even) = $\left((1-p) - p\right)^n + \left((1-p) + p\right)^n = 1 + (1 - 2p)^n$", 0.3, 16),
+        (r"And finally we get: P(X is even) = $\frac{1 + (1 - 2p)^n}{2}$", 0.2, 16)
+    ]
+    print_in_plot(prove)
 
     return (1 + (1 - 2 * p) ** n) / 2
 
 
+# evenBinomFormula(10, 0.3)
 
 ### Question 5 ###
 
@@ -214,11 +250,23 @@ def three_RV(X, Y, Z, joint_probs):
     - v: The variance of X + Y + Z.
     """
 
-    # Compute the expected values of X, Y, and Z with the classic definition: E[X] = ∑ xi * P(X=xi) = ∑ [value i] * [proba i]
+    steps = [
+        (r"QUESTION 5A:", 0.9, 18),
+        (r"$V(X+ (Y + Z)) = V(X) + V(Y + Z) + 2COV(X, Y + Z)$", 0.8, 15),
+        (r"$ = V(X) + V(Y) + V(Z) + 2COV(Y, Z) + 2COV(X, Y + Z)$", 0.7, 15),
+        (r"Using the linearity of expectation we get:", 0.6, 15),
+        (r"$COV(X, Y + Z) = E(XY + XZ) - E(X)*E(Y+Z)$", 0.5, 15),
+        (r"$= E(XY) + E(XZ) - E(X)*E(Y) - E(X)*E(Z)) = COV(X,Y) + COV(X,Z)$", 0.4, 15),
+        (r"Then:", 0.3, 15),
+        (r"$V(X + Y + Z) = V(X) + V(Y) + V(Z) + 2COV(Y, Z) + 2COV(X,Y) + 2COV(X,Z)$", 0.2, 15)
+    ]
+
+    print_in_plot(steps)
+
+    # Compute the expected values of X, Y, and Z with the classic definition: E[X] = ∑ x_i * P(X=xi) = ∑ [value i] * [proba i]
     EX = np.sum(X[0] * X[1])
     EY = np.sum(Y[0] * Y[1])
     EZ = np.sum(Z[0] * Z[1])
-
 
     # Compute E[X**2]= ∑ xi**2 * P(X=xi)
     EX2 = np.sum((X[0] ** 2) * X[1])
@@ -226,10 +274,9 @@ def three_RV(X, Y, Z, joint_probs):
     EZ2 = np.sum((Z[0] ** 2) * Z[1])
 
     # Compute the variances of X, Y, and Z: Var[X] = E[X**2] - E[X]**2
-    VarX = EX2 - EX**2
-    VarY = EY2 - EY**2
-    VarZ = EZ2 - EZ**2
-
+    VarX = EX2 - EX ** 2
+    VarY = EY2 - EY ** 2
+    VarZ = EZ2 - EZ ** 2
 
     # Compute the covariances between pairs (X, Y), (X, Z), (Y, Z)
     # By def, COV[X,Y] = E[X*Y] − E[X]*E[Y]
@@ -239,28 +286,27 @@ def three_RV(X, Y, Z, joint_probs):
     # P(X=xi, Y=yi)
     # join_probs: P(X=xi, Y=yi, Z=zi)
     # we want P(X=xi, Y=yi), that can be write with the join_probs: P(X=xi, Y=yi) = ∑ P(X=xi, Y=yi, Z=zi), ∑ on all the zi
-    P_XY = np.sum(joint_probs, axis=2) # axis = 2 , collapse Z (3rd elem of the join proba)
+    P_XY = np.sum(joint_probs, axis=2)  # axis = 2 , collapse Z (3rd elem of the join proba)
 
     # xi * yi
     # np.outer(X[0], Y[0]) produces a the matrix where each element is (xi * yi)  (2d)
     EXY = np.sum(P_XY * np.outer(X[0], Y[0]))
 
-    #We now do the same for (X,Z) and (Y,Z):
+    # We now do the same for (X,Z) and (Y,Z):
     P_XZ = np.sum(joint_probs, axis=1)  # axis = 1 , collapse Y (2nd elem)
     EXZ = np.sum(P_XZ * np.outer(X[0], Z[0]))
 
     P_YZ = np.sum(joint_probs, axis=0)  # collapse X (first elem)
     EYZ = np.sum(P_YZ * np.outer(Y[0], Z[0]))
 
-
     # Covariance
     CovXY = EXY - EX * EY
     CovXZ = EXZ - EX * EZ
     CovYZ = EYZ - EY * EZ
 
-
     # VAR(X+Y+Z) = Var(X) + Var(Y) + Var (Z) + 2*Cov(X,Y) + 2*Cov(XZ) + 2*Cov(YZ)
     return VarX + VarY + VarZ + 2 * CovXY + 2 * CovXZ + 2 * CovYZ
+
 
 def three_RV_pairwise_independent(X, Y, Z, joint_probs):
     """
@@ -274,6 +320,13 @@ def three_RV_pairwise_independent(X, Y, Z, joint_probs):
     Returns:
     - v: The variance of X + Y + Z.
     """
+    steps = [
+        (r"QUESTION 5B:", 0.9, 18),
+        (r"If X, Y, Z are pairwise independent the covariance", 0.8, 15),
+        (r"for each pair is 0 so:", 0.7, 15),
+        (r"$V(X + Y + Z) = V(X) + V(Y) + V(Z)$", 0.6, 15),
+    ]
+    print_in_plot(steps)
 
     # Calculate the variance of the sum X + Y + Z
     # Pairwise independent means that the covariance between any two of them is zero
@@ -287,18 +340,18 @@ def three_RV_pairwise_independent(X, Y, Z, joint_probs):
     EY = np.sum(Y[0] * Y[1])
     EZ = np.sum(Z[0] * Z[1])
 
-
     # Compute E[X**2]= ∑ xi**2 * P(X=xi)
     EX2 = np.sum((X[0] ** 2) * X[1])
     EY2 = np.sum((Y[0] ** 2) * Y[1])
     EZ2 = np.sum((Z[0] ** 2) * Z[1])
 
     # Compute the variances of X, Y, and Z: Var[X] = E[X**2] - E[X]**2
-    VarX = EX2 - EX**2
-    VarY = EY2 - EY**2
-    VarZ = EZ2 - EZ**2
+    VarX = EX2 - EX ** 2
+    VarY = EY2 - EY ** 2
+    VarZ = EZ2 - EZ ** 2
 
     return VarX + VarY + VarZ
+
 
 def is_pairwise_collectively(X, Y, Z, joint_probs):
     """
@@ -312,29 +365,12 @@ def is_pairwise_collectively(X, Y, Z, joint_probs):
     Returns:
     TRUE or FALSE
     """
-    # pairwise: P(X=x,Y=y)=P(X=x)⋅P(Y=y)  /  P(Z=z,Y=y)=P(Z=z)⋅P(Y=y)  /   P(X=x,Z=z)=P(X=x)⋅P(Z=z)
 
-    # collectivity: P(X=x,Y=y,Z=z)=P(X=x)⋅P(Y=y)⋅P(Z=z)
-
-    # extract marginal probabilities of X, Y and Z from the join_proba
-    P_X = np.sum(joint_probs, axis=(1, 2))  # axis=(1,2), bc we sum over Y and Z
-    P_Y = np.sum(joint_probs, axis=(0, 2))
-    P_Z = np.sum(joint_probs, axis=(0, 1))
-
-    for i, xi in enumerate(X[0]):  # enumerate give position, value  ->  use i to access to corresponding elements in other arrays like P_X[i] = P(X = xi) for that i
-        for j, yj in enumerate(Y[0]):
-            for k, zk in enumerate(Z[0]):
-                # P(X = xi, Y = yj, Z = zk)
-                P_join = joint_probs[i, j, k]
-
-                # P(X = xi)*P(Y = yj)*P(Z = zk)
-                P_sep = P_X[i] * P_Y[j] * P_Z[k]
-
-                # P(X = xi, Y = yj, Z = zk) =? P(X = xi)*P(Y = yj)*P(Z = zk)
-                if not np.isclose(P_join, P_sep):
+    for i in range(X.shape[0]):
+        for j in range(Y.shape[0]):
+            for k in range(Z.shape[0]):
+                if not np.isclose(joint_probs[i, j, k], X[i] * Y[j] * Z[k]):
                     return False  # we dont have the collectively independent
-
-    # P(X = xi, Y = yj, Z = zk) = P(X = xi)*P(Y = yj)*P(Z = zk)  for every i, then pairwise => collectivity
     return True
 
 
@@ -344,18 +380,22 @@ def expectedC(n, p):
     """
     The program outputs the expected value of the RV C as defined in the notebook.
     """
-    print("Prove:\n"
-          "E(C) = Σ (over all w in Ω) C(w) * P(w)\n"
-          "C(w) defined as the number of different strings with exactly W(w) 1's\n"
-          "Let k=W(w) so C(w) = (n choose k) and P(w) = p^k * (1-p)^(n-k) - independent tossing of a p-coin\n"
-          "Thus, all sequences of exactly k 1's are the same, so we sum over different k 1's:\n"
-          "E(C) = Σ (k=0 to n) (n choose k) * (n choose k) * p^k * (1-p)^(n-k)\n"
-          "= Σ (k=0 to n) (n choose k)^2 * p^k * (1-p)^(n-k)")
+    prove = [
+        ("QUESTION 6 - Prove:", 0.9, 18),
+        (r"$E(C) = \sum_{w \in \Omega} C(w) \cdot P(w)$", 0.8, 16),
+        (r"$C(w)$ is defined as the number of different strings with exactly $W(w)$ 1's.", 0.7, 12),
+        (
+            r"Let $k = W(w)$. Then, $C(w) = \binom{n}{k}$ and $P(w) = p^k \cdot (1-p)^{n-k}$ for independent tossing of a $p$-coin.",
+            0.6, 12),
+        (r"Thus, all sequences of exactly $k$ 1's are the same, so we sum over different $k$ 1's:", 0.5, 12),
+        (
+            r"$E(C) = \sum_{k=0}^{n} \binom{n}{k} \cdot \binom{n}{k} \cdot p^k \cdot (1-p)^{n-k} = \sum_{k=0}^{n} \binom{n}{k}^2 \cdot p^k \cdot (1-p)^{n-k}$",
+            0.4, 16)
+    ]
 
+    print_in_plot(prove)
     E = 0
     for k in range(n + 1):
         E += special.comb(n, k) * stats.binom.pmf(k, n, p)
 
     return E
-
-
