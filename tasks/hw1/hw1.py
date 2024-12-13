@@ -5,8 +5,7 @@
 
 # imports
 import numpy as np
-import pandas as pd
-from scipy import stats
+from scipy import stats, special
 import matplotlib.pyplot as plt
 
 
@@ -17,6 +16,7 @@ def find_sample_size_binom(min_defective=1, defective_rate=0.05, p_n_defective_t
     Using Binom to returns the minimal number of samples required to have requested probability of receiving
     at least x defective products from a production line with a defective rate.
     """
+    print("Explanation: here")
     n = 1
     while True:
         p_at_most_x_defective = stats.binom.cdf(min_defective - 1, n, defective_rate)
@@ -31,6 +31,7 @@ def find_sample_size_nbinom(min_defective=1, defective_rate=0.05, p_n_defective_
     Using NBinom to returns the minimal number of samples required to have requested probability of receiving
     at least x defective products from a production line with a defective rate.
     """
+    print("Explanation: here")
     n = min_defective
     while True:
         p_n_trials = stats.nbinom.cdf(n - min_defective, min_defective, defective_rate)
@@ -63,6 +64,7 @@ def empirical_centralized_third_moment(n=20, p=[0.2, 0.1, 0.1, 0.1, 0.2, 0.3], k
     Create k experiments where X is sampled. Calculate the empirical centralized third moment of Y based
     on your k experiments.
     """
+    print("Explanation: here")
     if seed:
         np.random.seed(seed)
     X = np.random.multinomial(n, p, size=k)
@@ -81,8 +83,7 @@ def class_moment(n=20, p=0.3):
 
 
 def plot_moments(n=20):
-
-    data = [empirical_centralized_third_moment(n) for k in range(1000)]
+    data = [empirical_centralized_third_moment(n) for _ in range(1000)]
 
     plt.hist(data, bins=20)
     plt.axvline(class_moment(n), color='red')
@@ -96,6 +97,7 @@ def plot_moments(n=20):
 
 
 def plot_moments_smaller_variance():
+    print("Explanation: here what need to be reduced")
     dist_var = plot_moments(5)
     return dist_var
 
@@ -114,6 +116,7 @@ def NFoldConv(P, n):
     Returns:
     - Q: 2d numpy array: [[values], [probabilities]].
     """
+    print("Explanation: here")
 
     Q = P
     for _ in range(n - 1):
@@ -132,7 +135,6 @@ def NFoldConv(P, n):
     return Q
 
 
-
 def plot_dist(P):
     """
     Ploting the distribution P using barplot.
@@ -140,22 +142,11 @@ def plot_dist(P):
     Input:
     - P: 2d numpy array: [[values], [probabilities]].
     """
-
-
-
-    categories = ['A', 'B', 'C', 'D']
-    values = [4, 7, 1, 8]
-
-    # Create the bar plot
     plt.bar(P[0], P[1])
-
-    # Add labels and title
     plt.xlabel('Distribution')
     plt.ylabel('Probability')
     plt.show()
 
-# Q = NFoldConv(np.array([[1, 2,5], [0.1, 0.5, 0.4]]), 2)
-# plot_dist(Q)
 
 ### Qeustion 4 ###
 
@@ -169,11 +160,11 @@ def evenBinom(n, p):
     Returns:
     - prob: The output probability.
     """
-        prob_even = 0
+    prob_even = 0
 
     for k in range(0, n + 1, 2):  # Only even k values
-        prob_even += binom.pmf(k, n, p)  # P(X = k)
-    
+        prob_even += stats.binom.pmf(k, n, p)  # P(X = k)
+
     return prob_even
 
 
@@ -203,7 +194,7 @@ def evenBinomFormula(n, p):
     print("That is equal to P(X=0) - P(X=1) + P(X=2) - ... that means P(X is even) - P(X is odd) \n")
     print("Then we have that the sum of the two expression gives us 2*P(X is even) = ((1-p)-p)**n + ((1-p)+p)**n = 1 + (1-2*p)**n \n")
     print("and finally : P(X is even) = (1/2) + (1/2)*((1- 2p)**n)\n")
-    
+
     return (1 + (1 - 2 * p) ** n) / 2
 
 
@@ -212,6 +203,7 @@ def evenBinomFormula(n, p):
 
 def three_RV(X, Y, Z, joint_probs):
     """
+
     Input:
     - X: 2d numpy array: [[values], [probabilities]].
     - Y: 2d numpy array: [[values], [probabilities]].
@@ -227,12 +219,12 @@ def three_RV(X, Y, Z, joint_probs):
     EY = np.sum(Y[0] * Y[1])
     EZ = np.sum(Z[0] * Z[1])
 
-    
+
     # Compute E[X**2]= ∑ xi**2 * P(X=xi)
     EX2 = np.sum((X[0] ** 2) * X[1])
     EY2 = np.sum((Y[0] ** 2) * Y[1])
     EZ2 = np.sum((Z[0] ** 2) * Z[1])
-    
+
     # Compute the variances of X, Y, and Z: Var[X] = E[X**2] - E[X]**2
     VarX = EX2 - EX**2
     VarY = EY2 - EY**2
@@ -252,7 +244,7 @@ def three_RV(X, Y, Z, joint_probs):
     # xi * yi
     # np.outer(X[0], Y[0]) produces a the matrix where each element is (xi * yi)  (2d)
     EXY = np.sum(P_XY * np.outer(X[0], Y[0]))
-    
+
     #We now do the same for (X,Z) and (Y,Z):
     P_XZ = np.sum(joint_probs, axis=1)  # axis = 1 , collapse Y (2nd elem)
     EXZ = np.sum(P_XZ * np.outer(X[0], Z[0]))
@@ -261,7 +253,7 @@ def three_RV(X, Y, Z, joint_probs):
     EYZ = np.sum(P_YZ * np.outer(Y[0], Z[0]))
 
 
-    # Covariance 
+    # Covariance
     CovXY = EXY - EX * EY
     CovXZ = EXZ - EX * EZ
     CovYZ = EYZ - EY * EZ
@@ -285,9 +277,9 @@ def three_RV_pairwise_independent(X, Y, Z, joint_probs):
 
     # Calculate the variance of the sum X + Y + Z
     # Pairwise independent means that the covariance between any two of them is zero
-    
+
     # Then VAR(X+Y+Z) = Var(X) + Var(Y) + Var (Z) + 2*Cov(X,Y) + 2*Cov(XZ) + 2*Cov(YZ) become VAR(X+Y+Z) = Var(X) + Var(Y) + Var (Z)
-    
+
     # By the same idea of the last function, we need to:
 
     # Compute the expected values of X, Y, and Z with the classic definition: E[X] = ∑ xi * P(X=xi) = ∑ [value i] * [proba i]
@@ -295,12 +287,12 @@ def three_RV_pairwise_independent(X, Y, Z, joint_probs):
     EY = np.sum(Y[0] * Y[1])
     EZ = np.sum(Z[0] * Z[1])
 
-    
+
     # Compute E[X**2]= ∑ xi**2 * P(X=xi)
     EX2 = np.sum((X[0] ** 2) * X[1])
     EY2 = np.sum((Y[0] ** 2) * Y[1])
     EZ2 = np.sum((Z[0] ** 2) * Z[1])
-    
+
     # Compute the variances of X, Y, and Z: Var[X] = E[X**2] - E[X]**2
     VarX = EX2 - EX**2
     VarY = EY2 - EY**2
@@ -323,11 +315,11 @@ def is_pairwise_collectively(X, Y, Z, joint_probs):
     # pairwise: P(X=x,Y=y)=P(X=x)⋅P(Y=y)  /  P(Z=z,Y=y)=P(Z=z)⋅P(Y=y)  /   P(X=x,Z=z)=P(X=x)⋅P(Z=z)
 
     # collectivity: P(X=x,Y=y,Z=z)=P(X=x)⋅P(Y=y)⋅P(Z=z)
-    
+
     # extract marginal probabilities of X, Y and Z from the join_proba
     P_X = np.sum(joint_probs, axis=(1, 2))  # axis=(1,2), bc we sum over Y and Z
-    P_Y = np.sum(joint_probs, axis=(0, 2))  
-    P_Z = np.sum(joint_probs, axis=(0, 1)) 
+    P_Y = np.sum(joint_probs, axis=(0, 2))
+    P_Z = np.sum(joint_probs, axis=(0, 1))
 
     for i, xi in enumerate(X[0]):  # enumerate give position, value  ->  use i to access to corresponding elements in other arrays like P_X[i] = P(X = xi) for that i
         for j, yj in enumerate(Y[0]):
@@ -352,16 +344,18 @@ def expectedC(n, p):
     """
     The program outputs the expected value of the RV C as defined in the notebook.
     """
-    def factorial(n):
-    fact = 1
-    for i in range(1, n + 1):
-        fact *= i
-    return fact
+    print("Prove:\n"
+          "E(C) = Σ (over all w in Ω) C(w) * P(w)\n"
+          "C(w) defined as the number of different strings with exactly W(w) 1's\n"
+          "Let k=W(w) so C(w) = (n choose k) and P(w) = p^k * (1-p)^(n-k) - independent tossing of a p-coin\n"
+          "Thus, all sequences of exactly k 1's are the same, so we sum over different k 1's:\n"
+          "E(C) = Σ (k=0 to n) (n choose k) * (n choose k) * p^k * (1-p)^(n-k)\n"
+          "= Σ (k=0 to n) (n choose k)^2 * p^k * (1-p)^(n-k)")
 
-    exp = 0
-    for k in range(n+1):
-        c = ( factorial(n) ) / ( (factorial(n-k) * factorial(k) ) )
-        proba = c * (p**k) * ((1-p)**(n-k))
-        exp += (c * proba)
+    E = 0
+    for k in range(n + 1):
+        E += special.comb(n, k) * stats.binom.pmf(k, n, p)
 
-    return exp 
+    return E
+
+
