@@ -1,6 +1,6 @@
 ###### Your ID ######
-# ID1:
-# ID2:
+# ID1: 312119126
+# ID2: 209876846
 #####################
 
 # imports
@@ -183,7 +183,7 @@ def plot_dist(P):
     plt.show()
 
 
-### Qeustion 4 ###
+### Question 4 ###
 
 def evenBinom(n, p):
     """
