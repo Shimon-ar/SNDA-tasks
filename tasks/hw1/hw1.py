@@ -233,8 +233,6 @@ def evenBinomFormula(n, p):
     return (1 + (1 - 2 * p) ** n) / 2
 
 
-# evenBinomFormula(10, 0.3)
-
 ### Question 5 ###
 
 def three_RV(X, Y, Z, joint_probs):
@@ -263,36 +261,23 @@ def three_RV(X, Y, Z, joint_probs):
 
     print_in_plot(steps)
 
-    # Compute the expected values of X, Y, and Z with the classic definition: E[X] = ∑ x_i * P(X=xi) = ∑ [value i] * [proba i]
     EX = np.sum(X[0] * X[1])
     EY = np.sum(Y[0] * Y[1])
     EZ = np.sum(Z[0] * Z[1])
 
-    # Compute E[X**2]= ∑ xi**2 * P(X=xi)
     EX2 = np.sum((X[0] ** 2) * X[1])
     EY2 = np.sum((Y[0] ** 2) * Y[1])
     EZ2 = np.sum((Z[0] ** 2) * Z[1])
 
-    # Compute the variances of X, Y, and Z: Var[X] = E[X**2] - E[X]**2
     VarX = EX2 - EX ** 2
     VarY = EY2 - EY ** 2
     VarZ = EZ2 - EZ ** 2
 
-    # Compute the covariances between pairs (X, Y), (X, Z), (Y, Z)
-    # By def, COV[X,Y] = E[X*Y] − E[X]*E[Y]
 
-    # Compute E[X*Y] = ∑ xi * yi * P(X=xi, Y=yi)
-
-    # P(X=xi, Y=yi)
-    # join_probs: P(X=xi, Y=yi, Z=zi)
-    # we want P(X=xi, Y=yi), that can be write with the join_probs: P(X=xi, Y=yi) = ∑ P(X=xi, Y=yi, Z=zi), ∑ on all the zi
     P_XY = np.sum(joint_probs, axis=2)  # axis = 2 , collapse Z (3rd elem of the join proba)
-
-    # xi * yi
     # np.outer(X[0], Y[0]) produces a the matrix where each element is (xi * yi)  (2d)
     EXY = np.sum(P_XY * np.outer(X[0], Y[0]))
 
-    # We now do the same for (X,Z) and (Y,Z):
     P_XZ = np.sum(joint_probs, axis=1)  # axis = 1 , collapse Y (2nd elem)
     EXZ = np.sum(P_XZ * np.outer(X[0], Z[0]))
 
@@ -328,24 +313,14 @@ def three_RV_pairwise_independent(X, Y, Z, joint_probs):
     ]
     print_in_plot(steps)
 
-    # Calculate the variance of the sum X + Y + Z
-    # Pairwise independent means that the covariance between any two of them is zero
-
-    # Then VAR(X+Y+Z) = Var(X) + Var(Y) + Var (Z) + 2*Cov(X,Y) + 2*Cov(XZ) + 2*Cov(YZ) become VAR(X+Y+Z) = Var(X) + Var(Y) + Var (Z)
-
-    # By the same idea of the last function, we need to:
-
-    # Compute the expected values of X, Y, and Z with the classic definition: E[X] = ∑ xi * P(X=xi) = ∑ [value i] * [proba i]
     EX = np.sum(X[0] * X[1])
     EY = np.sum(Y[0] * Y[1])
     EZ = np.sum(Z[0] * Z[1])
 
-    # Compute E[X**2]= ∑ xi**2 * P(X=xi)
     EX2 = np.sum((X[0] ** 2) * X[1])
     EY2 = np.sum((Y[0] ** 2) * Y[1])
     EZ2 = np.sum((Z[0] ** 2) * Z[1])
 
-    # Compute the variances of X, Y, and Z: Var[X] = E[X**2] - E[X]**2
     VarX = EX2 - EX ** 2
     VarY = EY2 - EY ** 2
     VarZ = EZ2 - EZ ** 2
@@ -365,6 +340,16 @@ def is_pairwise_collectively(X, Y, Z, joint_probs):
     Returns:
     TRUE or FALSE
     """
+    steps = [
+        (r"QUESTION 5C:", 0.9, 18),
+        (r"The answer is NO we will use the following example:", 0.8, 15),
+        (r"Let $X, Y \sim B(0.5)$ and $Z = X \oplus Y$", 0.7, 15),
+        (r"$P(X=x, Z=z) = \frac{1}{4} = P(X=x) \cdot P(Z=z)$", 0.6, 15),
+        (r"In the same way Y and Z are independent and X,Y independent", 0.5, 15),
+        (r"So X,Y,Z are pairwise independent but:", 0.4, 15),
+        (r"$P(X=0, Y=0, Z=1) = 0 \neq P(X=0) \cdot P(Y=0) \cdot P(Z=1)$", 0.3, 15),
+    ]
+    print_in_plot(steps)
 
     for i in range(X.shape[0]):
         for j in range(Y.shape[0]):
