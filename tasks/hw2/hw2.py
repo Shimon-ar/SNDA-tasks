@@ -1,6 +1,6 @@
 ###### Your ID ######
 # ID1: 312119126
-# ID2: 
+# ID2: 209876846
 #####################
 
 # imports 
@@ -24,8 +24,16 @@ def q2a(X, Y, Z):
     The number of parameters that define the joint distribution of X, Y and Z.
     """
 
-    pass
+    n = X.shape[1]  # gives the number of possible values for X
+    m = Y.shape[1]
+    k = Z.shape[1]
 
+    # The join distribution is described by the P(X=x, Y=y, Z=z) probabilities for every n, m and k values that X, Y and Z can take
+    # There is n*k*m total combinaisons
+    # But, the sum of all thoses probabilites needs to be equal to 1 to respect the definition of a probability function
+    # Then we only need to define n*m*k -1 parameters, since the last one is determined by the contraint of the sum equal to 1
+   
+    return (n*m*k)-1
 
 def q2b(X, Y, Z):
     """
@@ -39,7 +47,18 @@ def q2b(X, Y, Z):
     The number of parameters that define the joint distribution of X, Y and Z if we know that they are independent.
     """
 
-    pass
+    n = X.shape[1]
+    m = Y.shape[1]
+    k = Z.shape[1]
+
+    # The variables are independant, then P(X=x, Y=y, Z=z) = P(X=x)P(Y=y)P(Z=z)
+    # So we can define the marginale distributions separetly
+    # As the same idea as Q2a, the sum of the probabilities needs to be 1,
+    # then for X that takes n values: we define n-1 probabilities,
+    # the last is determined by the contraint of the sum equal to 1
+    # Same for Y and Z
+
+    return (n-1)+(m-1)+(k-1)
 
 
 def q2c(X, Y, Z):
@@ -54,7 +73,21 @@ def q2c(X, Y, Z):
     The number of parameters that define the joint distribution of X, Y and Z if we know that they are independent.
     """
 
-    pass
+    n = X.shape[1]
+    m = Y.shape[1]
+    k = Z.shape[1]
+
+    # X, Y are conditionally independant given Z, then P(X=x, Y=y, Z=z) = P(X=x|Z=z)P(Y=y|Z=z)P(Z=z)
+    # As the same idea, as q2b: For Z, we denike k-1 probabilities, then parameters
+    # For P(X=x|Z=z), we have k values for Z and we need to define the probability for the values of X
+    # the sum of the probabilities needs to be 1,
+    # then for X that takes n values: we define n-1 probabilities,
+    # the last is determined by the contraint of the sum equal to 1, as seen
+    # so we have (n-1) parameters for each z (and we have k possibilities for z): then k(n-1) parameters for P(X=x|Z=z)
+    # Same for P(Y=y|Z=z): k*(m-1)
+
+
+    return k + k*(n-1) + k*(m-1)
 
 
 ### Question 3 ###
@@ -229,8 +262,18 @@ def CC_Expected(N=10):
     E(T_N)
     """
 
-    pass
+    # By class3, we have the definition E(T_N) = N * ∑ 1/i  - for i=1,...N
 
+    return N * sum(1 / i for i in range(1, N + 1))
+
+    """
+    OR 
+    def single_coupon_prob(N):
+        return [(n-i) / float(N) for i in range(N)]
+
+    return sum([1.0 / p for p in single_coupon_prob(N)])
+
+    """
 
 def CC_Variance(N=10):
     """
@@ -242,7 +285,21 @@ def CC_Variance(N=10):
     V(T_N)
     """
 
-    pass
+    # By class3, we have the definition V(T_N) = N^2 * ∑ (1/i^2) - N * H(N)   - for i=1,...N
+
+    H_N = sum(1 / i for i in range(1, N + 1))
+    sum = sum(1 / i**2 for i in range(1, N + 1))  # ∑ (1/i^2)
+
+    return N**2 * sum - N * H_N
+
+
+    """ 
+    OR fROM THE SLIDES 
+    def single_coupon_prob(N):
+        return [(n-i) / float(N) for i in range(N)]
+
+    return sum([(1.0-p) / (p**2) for p in single_coupon_prob(N)])
+    """
 
 
 def CC_T_Steps(N=10, n_steps=30):
@@ -255,7 +312,19 @@ def CC_T_Steps(N=10, n_steps=30):
     The probability that T_N > n_steps
     """
 
-    pass
+    #E(T_N):
+    mean = CC_Expected(N=10)
+
+    #VAR(T_N)
+    var = CC_Variance(N=10)
+
+    # If n_steps ≤ E(T_N), return 1 (impossible to exceed)
+    if n_steps <= mean:
+        return 1.0
+
+    # Calculation of the limit with Chebyshev
+    cN = n_steps - mean
+    return variance / cN**2
 
 
 def CC_S_Steps(N=10, n_steps=30):
@@ -268,4 +337,29 @@ def CC_S_Steps(N=10, n_steps=30):
     The probability that S_N > n_steps
     """
 
-    pass
+    # Sn = waiting time until different coupons are collected twice.
+    # We use an approach by convultion
+    # We have: P(S_N = k) = ∑ P(G_N = i)* P(S_N = k-i)  -  sum for i=1,...k-1
+    # where G_N is the time to get the N_th coupon: We init P(T_1 = k), ) for all other values
+    # G_i ˜ Geo(p = (N-i+1) /N)
+
+    P_S = np.zeros(n_steps + 1)
+    P_S[0] = 1.0  # S_0 = 1
+
+    # We calculate P(S_N > n_steps) recursively:
+
+    for i in range(1, N + 1):
+
+        P_new = np.zeros(n_steps + 1)
+        p = i / N  # P of succes of the i-e coupon - more you go, more chnace you have to get a coupon
+
+        for k in range(1, n_steps + 1):  # calculation for the n_steps of P(S_N = k)
+            for j in range(1, k + 1):  # Sommation - waiting time for coupon i
+                if k - j >= 0:
+                    P_new[k] = P_new[k] + stats.geom.pmf(j, p) * P_S[k - j]   # P(S_N = k)  = ∑ P(G_N = i)* P(S_N = k-i)
+
+        P_S = P_new  # dist of the new coupon - P(S_N = k)
+
+    # P(S_N > n_steps) = 1 - P(S_N ≤ n_steps) (the sum of all P(S_N = k; k≤ n_steps) )
+    return 1.0 - np.sum(P_S[:n_steps + 1])
+
