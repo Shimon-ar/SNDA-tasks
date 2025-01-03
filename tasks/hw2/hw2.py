@@ -87,7 +87,7 @@ def q2c(X, Y, Z):
     # Same for P(Y=y|Z=z): k*(m-1)
 
 
-    return k + k*(n-1) + k*(m-1)
+    return k - 1 + k*(n-1) + k*(m-1)
 
 
 ### Question 3 ###
@@ -264,16 +264,8 @@ def CC_Expected(N=10):
 
     # By class3, we have the definition E(T_N) = N * ∑ 1/i  - for i=1,...N
 
-    return N * sum(1 / i for i in range(1, N + 1))
+    return N * np.sum(1 / np.arange(1, N + 1))
 
-    """
-    OR 
-    def single_coupon_prob(N):
-        return [(n-i) / float(N) for i in range(N)]
-
-    return sum([1.0 / p for p in single_coupon_prob(N)])
-
-    """
 
 def CC_Variance(N=10):
     """
@@ -287,19 +279,8 @@ def CC_Variance(N=10):
 
     # By class3, we have the definition V(T_N) = N^2 * ∑ (1/i^2) - N * H(N)   - for i=1,...N
 
-    H_N = sum(1 / i for i in range(1, N + 1))
-    sum = sum(1 / i**2 for i in range(1, N + 1))  # ∑ (1/i^2)
-
-    return N**2 * sum - N * H_N
-
-
-    """ 
-    OR fROM THE SLIDES 
-    def single_coupon_prob(N):
-        return [(n-i) / float(N) for i in range(N)]
-
-    return sum([(1.0-p) / (p**2) for p in single_coupon_prob(N)])
-    """
+    h_s = np.sum([1 / i**2 for i in range(1, N + 1)])
+    return N**2 * h_s - CC_Expected(N)
 
 
 def CC_T_Steps(N=10, n_steps=30):
@@ -324,7 +305,7 @@ def CC_T_Steps(N=10, n_steps=30):
 
     # Calculation of the limit with Chebyshev
     cN = n_steps - mean
-    return variance / cN**2
+    return var / cN**2
 
 
 def CC_S_Steps(N=10, n_steps=30):
